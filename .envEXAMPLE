@@ -1,6 +1,5 @@
-DISCORD_TOKEN=<your bot token>
-SERVER_NAME=<your server name>
-BACKOFF_TIME=<number of seconds to wait between checks>
-NOTIFICATION_CHANNEL_ID=<notification channel ID>
-WELCOME_CHANNEL_ID=<welcome channel ID>
-ALLOWED_ROLES=Lead Developer,Developer,Blockchain Developer,Moderator,Exchange,Pool Operator
+  GuildID= server guild id
+  ClientID = application id used to register comands with rc.js
+  TOKEN = Bot token
+  MANGODB_URI = mongodb uri
+  mention_channel = ID of channel where to send messages 

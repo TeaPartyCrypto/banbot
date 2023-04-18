@@ -57,11 +57,14 @@ mongoose.connect(process.env.MANGODB_URI,{
 }).then(() => {
   console.log('Connected to DataBase')
 })
-
-// Get the initial interval value from the database
 const intervalData = await interval_model.findOne({ Guild_ID: Guild_ID });
-let interval = intervalData.Time;
+let interval;
 
+if (intervalData) {
+  interval = intervalData.Time;
+} else {
+  interval = 30000; // replace DEFAULT_INTERVAL with your default value
+}
 // Listen for changes to the interval_model collection
 interval_model.watch().on('change', async (data) => {
     // Get the new interval value from the database

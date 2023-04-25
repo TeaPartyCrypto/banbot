@@ -1,17 +1,16 @@
-const { Client, GatewayIntentBits,Events,Collection,Permissions } = require('discord.js');
+const { Client, GatewayIntentBits,Events,Collection,PermissionsBitField,REST, Routes  } = require('discord.js');
+
 require("dotenv").config();
 const fs = require('fs');
 const mongoose = require('mongoose')
 
-
+const admin_model = require('./models/admin')
 const interval_model = require('./models/interval');
 const user_model = require("./models/users")
 const warning_model = require("./models/warning")
 
-
 const unicode = require('./utils/unicode')
-const detectedNames = require('./utils/detection')
-
+const detectedNames = require('./utils/detection');
 const Guild_ID = process.env.GuildID
 
 
@@ -25,27 +24,64 @@ const client = new Client({
       
 client.commands = new Collection();
 
+const commandFolders = fs.readdirSync('./commands');
+for (const folder of commandFolders) {
+	const commandFiles = fs.readdirSync(`./commands/${folder}`).filter(file => file.endsWith('.js'));
+	for (const file of commandFiles) {
+		const command = require(`./commands/${folder}/${file}`);
+    command.folder = folder;
+		client.commands.set(command.name, command);
+  }}
+  client.on('guildCreate', (g) => {
 
-  fs.readdir('./commands/', (err, files) => {
-    if (err) console.error(err);
-    files.forEach(file => {
-      const command = require(`./commands/${file}`);
-      client.commands.set(command.name, command);
-    });
-  });
+const data = [];
+client.commands.forEach(command => {
+  const commandObject = {
+    name: command.name,
+    description:command.description,
+    options: command.options || null
+  };
+  data.push(commandObject);
+});
 
- client.on(Events.InteractionCreate,
-  async interaction => {
-    if (!interaction.isChatInputCommand()) return;
-      const commandName = interaction.commandName;
-      const command = client.commands.get(commandName);
-      if (!command) return;
-      if (interaction.member.permissions.has(command.permission)){
-        command.execute(interaction,client)
-      }else {
-        interaction.reply({content:"you are not allowed to use this command",ephemeral:true})
-      }
-     
+
+  const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
+        try {
+           rest.put(Routes.applicationGuildCommands(
+            process.env.ClientID,
+            g.id),
+            { body: data });
+          console.log(`Commands is registered`);
+        } catch (error) {
+          console.error(error);
+        }
+      })
+ client.on(Events.InteractionCreate, async interaction => {
+  if (!interaction.isCommand()) return;
+  const command = interaction.client.commands.get(interaction.commandName);
+  if (!command) {
+    console.error(`No command matching ${interaction.commandName} was found.`);
+    return;
+  }
+
+  const userId = interaction.member.id;
+  const userroles = interaction.member._roles;
+  const role = await admin_model.findOne({Guild_ID:Guild_ID, Role:userroles})
+  const user = await admin_model.findOne({ Guild_ID: Guild_ID,userid:userId})
+
+  if (command.folder == `admins`){
+    if (interaction.member.permissions.has(command.permission)){
+    command.execute(interaction,client)
+    }else{
+    interaction.reply({content:`You do not have permission to access this command`,ephemeral:true})
+  }}
+
+  if (command.folder == `botadmins`){
+    if(role || user|| interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)){
+    command.execute(interaction,client)
+  }else{
+    interaction.reply({content:`You do not have permission to access this command`,ephemeral:true})
+  }}
   })
 client.on('ready', async (client) => {
 console.log(`Logged in as ${client.user.tag}!`);
@@ -63,11 +99,9 @@ let interval;
 if (intervalData) {
   interval = intervalData.Time;
 } else {
-  interval = 30000; // replace DEFAULT_INTERVAL with your default value
+  interval = 30000; 
 }
-// Listen for changes to the interval_model collection
 interval_model.watch().on('change', async (data) => {
-    // Get the new interval value from the database
     const updatedIntervalData = await interval_model.findOne({ Guild_ID: Guild_ID });
     clearInterval(Check_interval);
     interval = updatedIntervalData.Time;
@@ -89,9 +123,8 @@ async function handleUser(userId) {
     const member = await guild.members.fetch(userId);
     const channel = client.channels.cache.get(process.env.mention_channel);
     channel.send(`Protection System detected \n<@${member.user.id}> Case insensetive`)
-    // console.log(`${userId} Kicked`)
     member.kick();
-  } else { // if user exists, ban them
+  } else { 
     const guild = await client.guilds.fetch(Guild_ID);
     const member = await guild.members.fetch(userId);
     const channel = client.channels.cache.get(process.env.mention_channel);
@@ -100,7 +133,6 @@ async function handleUser(userId) {
   }
 }
 
-// Define the samename function
 async function samename() {
   let res = await guild.members.fetch();
   const users = await user_model.find({ Guild_ID: Guild_ID });
@@ -118,7 +150,6 @@ async function samename() {
 
    if (lowerSubstrings.includes(member.user.username.toLowerCase()) && !discriminator.includes(member.user.discriminator)){
     const channel = client.channels.cache.get(process.env.mention_channel);
-    // channel.send(`Protection System detected \n<@${member.user.id}> Case insensetive`)
    
       member.send("Protection system detected that you have Same Or similar name As Protected names. This is put in place to prevent our comunnity from scamers, please change your username, If you do not do so you will be banned ")
       .catch(error =>channel.send("Could not warn user, DM's Closerd"))
@@ -127,7 +158,6 @@ async function samename() {
 
     if (detected == true){
       const channel = client.channels.cache.get(process.env.mention_channel);
-      // channel.send(`Protection System detected \n<@${member.user.id}> Tried to bypass protection using unicodes`) 
       
         member.send("Protection system detected that you have Same Or similar name As Protected names. This is put in place to prevent our comunnity from scamers, please change your username, If you do not do so you will be banned ")
         .catch(error =>channel.send(``))

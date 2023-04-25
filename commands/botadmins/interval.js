@@ -1,9 +1,17 @@
-const interval_model = require('../models/interval');
-const decodeTime = require('../utils/time');
+const interval_model = require('../../models/interval');
+const decodeTime = require('../../utils/time');
+const {PermissionsBitField} = require('discord.js')
 
 module.exports = {
   name: "interval",
-  permission:'8',
+  permission:PermissionsBitField.Flags.SendMessages,
+  description: 'Chose interval for checks',
+  options:[{
+    name:'time',
+    description:'use time formats, like 30s,1m,1h ',
+    type: 3,
+    required:true,
+  }],
 
   async execute(interaction) {
     const timeString = interaction.options.get('time').value;

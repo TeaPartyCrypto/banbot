@@ -70,7 +70,7 @@ client.commands.forEach(command => {
   const user = await admin_model.findOne({ Guild_ID: Guild_ID,userid:userId})
 
   if (command.folder == `admins`){
-    if (interaction.member.permissions.has(command.permission)){
+    if (interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)){
     command.execute(interaction,client)
     }else{
     interaction.reply({content:`You do not have permission to access this command`,ephemeral:true})
@@ -86,11 +86,8 @@ client.commands.forEach(command => {
 client.on('ready', async (client) => {
 console.log(`Logged in as ${client.user.tag}!`);
 const guild = client.guilds.cache.get(Guild_ID);
-let res = await guild.members.fetch();
 mongoose.set('strictQuery', false);
-mongoose.connect(process.env.MANGODB_URI,{
-  keepAlive:true,
-}).then(() => {
+mongoose.connect(process.env.MANGODB_URI,{}).then(() => {
   console.log('Connected to DataBase')
 })
 const intervalData = await interval_model.findOne({ Guild_ID: Guild_ID });

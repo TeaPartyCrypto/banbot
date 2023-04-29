@@ -2,7 +2,6 @@ const {PermissionsBitField} = require('discord.js')
 const user_model = require(`../../models/users`)
 module.exports = {
     name:"remove",
-    permission:PermissionsBitField.Flags.SendMessages,
     description: 'Remove user from protected list ',
     options:[{
       name:'username',
@@ -12,6 +11,7 @@ module.exports = {
     }],
 
     async execute(interaction,client){
+        
         await interaction.deferReply({ ephemeral: true });
         const guildId = interaction.guild.id
 

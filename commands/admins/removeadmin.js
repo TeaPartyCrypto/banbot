@@ -1,8 +1,6 @@
-const {PermissionsBitField} = require('discord.js')
 const admin_model = require('../../models/admin')
 module.exports = {
     name:"removeadmin",
-    permission:PermissionsBitField.Flags.Administrator,
     description: 'remove role or user as bot admin',
     options:[{
       name:'user',
@@ -18,21 +16,20 @@ module.exports = {
 
 
     async execute(interaction){
+      await interaction.deferReply({ ephemeral: true });
         const guildId = interaction.guild.id
         const role = interaction.options.getRole("role");
-        
-        if(interaction.options.getMember("user") && interaction.options.getRole("role")){
-            interaction.reply({content:"Please select single option, Role or user",ephemeral:true})
-        }else {
-            interaction.reply({content:"Please select role or user",ephemeral:true})
+        const selection = interaction.options.getMember("user") && interaction.options.getRole("role")
+        if(selection){
+            interaction.editReply({content:"Please select single option, Role or user",ephemeral:true})
         }
         if(role){
             admin_model.findOneAndDelete({ Role: role.id })
   .then((admin) => {
     if (!admin) {
-      interaction.reply(`${role} Admin not found.`);
+      interaction.editReply({content:`${role} role does not exist `,ephemeral:true});
     } else {
-interaction.reply(`<@&${role}> Deleted from admin`)    }
+interaction.editReply({content:`${role} Deleted from admin`,ephemeral:true})    }
   })
   .catch((err) => {
     console.log('Error deleting admin:', err);
@@ -42,9 +39,9 @@ interaction.reply(`<@&${role}> Deleted from admin`)    }
          if(interaction.options.getMember("user")){
             let defined  = await admin_model.findOneAndDelete({ Guild_ID: guildId, userid:interaction.options.getMember("user").id });
         if(defined){
-            return interaction.reply(`<@${interaction.options.getMember("user").id}> removed from admin List`)
+            return interaction.reply({content:`<@${interaction.options.getMember("user").id}> removed from admin List`,ephemeral:true})
         }else {
-            interaction.reply("This user is not set as bot admin")
+            interaction.reply({content:`${interaction.options.getMember("user")} User not found`,ephemeral:true})
         }
         
             }

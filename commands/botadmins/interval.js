@@ -4,7 +4,6 @@ const {PermissionsBitField} = require('discord.js')
 
 module.exports = {
   name: "interval",
-  permission:PermissionsBitField.Flags.SendMessages,
   description: 'Chose interval for checks',
   options:[{
     name:'time',
@@ -14,12 +13,13 @@ module.exports = {
   }],
 
   async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
     const timeString = interaction.options.get('time').value;
     const guildId = interaction.guild.id;
 
     const timeRegex = /^[1-9]\d*[smh]$/;
     if (!timeRegex.test(timeString)) {
-      return interaction.reply('Incorrect time format. Please provide a time in the format of number + time (e.g. 10m).');
+      return interaction.editReply('Incorrect time format. Please provide a time in the format of number + time (e.g. 10m).');
     }
 
     const timeInMillis = decodeTime(timeString);
@@ -31,10 +31,10 @@ module.exports = {
 
       try {
         await existingInterval.save();
-        interaction.reply(`Interval has been updated to ${timeString} (${timeInMillis} ms).`);
+        interaction.editReply(`Interval has been updated to ${timeString} (${timeInMillis} ms).`);
       } catch (err) {
         console.error(err);
-        interaction.reply('Error updating interval.');
+        interaction.editReply('Error updating interval.');
       }
     } else {
       const newInterval = new interval_model({
@@ -47,7 +47,7 @@ module.exports = {
         interaction.reply(`Interval has been set to ${timeString} (${timeInMillis} ms).`);
       } catch (err) {
         console.error(err);
-        interaction.reply('Error setting interval.');
+        interaction.editReply('Error setting interval.');
       }
     }
   }

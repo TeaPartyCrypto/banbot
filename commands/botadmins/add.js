@@ -1,9 +1,7 @@
 const user_model = require('../../models/users');
-const {PermissionsBitField} = require('discord.js')
 
 module.exports = {
     name:"add",
-    permission:PermissionsBitField.Flags.SendMessages,
     description: 'add username to protect',
     options:[{
       name:'username',
@@ -18,7 +16,7 @@ module.exports = {
         const guildId = interaction.guild.id;
         const existingUser = await user_model.findOne({ Guild_ID: guildId, username: interaction.options.getUser("username").tag });
         if (existingUser) {
-          return interaction.editReply('User already exists in the database.');
+          return interaction.editReply(`<@${interaction.options.getUser("username").id}> is already added `);
         }
         
         const newUser = new user_model({

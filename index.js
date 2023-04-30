@@ -9,6 +9,7 @@ const interval_model = require('./models/interval');
 const user_model = require("./models/users")
 const warning_model = require("./models/warning")
 
+const registerCommands = require("./utils/register_commands")
 const unicode = require('./utils/unicode')
 const detectedNames = require('./utils/detection');
 const Guild_ID = process.env.GuildID
@@ -33,29 +34,9 @@ for (const folder of commandFolders) {
 		client.commands.set(command.name, command);
   }}
   client.on('guildCreate', (g) => {
-
-const data = [];
-client.commands.forEach(command => {
-  const commandObject = {
-    name: command.name,
-    description:command.description,
-    options: command.options || null
-  };
-  data.push(commandObject);
-});
-
-
-  const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
-        try {
-           rest.put(Routes.applicationGuildCommands(
-            process.env.ClientID,
-            g.id),
-            { body: data });
-          console.log(`Commands is registered`);
-        } catch (error) {
-          console.error(error);
-        }
+    registerCommands(client,g.id)
       })
+      
  client.on(Events.InteractionCreate, async interaction => {
   if (!interaction.isCommand()) return;
   const command = interaction.client.commands.get(interaction.commandName);
@@ -90,6 +71,7 @@ mongoose.set('strictQuery', false);
 mongoose.connect(process.env.MANGODB_URI,{}).then(() => {
   console.log('Connected to DataBase')
 })
+registerCommands(client,Guild_ID)
 const intervalData = await interval_model.findOne({ Guild_ID: Guild_ID });
 let interval;
 

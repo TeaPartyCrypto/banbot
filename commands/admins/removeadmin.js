@@ -39,9 +39,9 @@ interaction.editReply({content:`${role} Deleted from admin`,ephemeral:true})    
          if(interaction.options.getMember("user")){
             let defined  = await admin_model.findOneAndDelete({ Guild_ID: guildId, userid:interaction.options.getMember("user").id });
         if(defined){
-            return interaction.reply({content:`<@${interaction.options.getMember("user").id}> removed from admin List`,ephemeral:true})
+            return interaction.editReply({content:`<@${interaction.options.getMember("user").id}> removed from admin List`,ephemeral:true})
         }else {
-            interaction.reply({content:`${interaction.options.getMember("user")} User not found`,ephemeral:true})
+            interaction.editReply({content:`${interaction.options.getMember("user")} User not found`,ephemeral:true})
         }
         
             }

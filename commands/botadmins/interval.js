@@ -44,7 +44,7 @@ module.exports = {
 
       try {
         await newInterval.save();
-        interaction.reply(`Interval has been set to ${timeString} (${timeInMillis} ms).`);
+        interaction.editReply(`Interval has been set to ${timeString} (${timeInMillis} ms).`);
       } catch (err) {
         console.error(err);
         interaction.editReply('Error setting interval.');
